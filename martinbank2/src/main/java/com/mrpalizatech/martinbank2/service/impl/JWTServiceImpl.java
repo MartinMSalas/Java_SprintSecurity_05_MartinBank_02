@@ -2,6 +2,7 @@ package com.mrpalizatech.martinbank2.service.impl;
 
 import com.mrpalizatech.martinbank2.entity.UserEntity;
 import com.mrpalizatech.martinbank2.service.JWTService;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -10,8 +11,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.function.Function;
 
 @Service
 public class JWTServiceImpl implements JWTService {
@@ -39,5 +42,38 @@ public class JWTServiceImpl implements JWTService {
     private Key getSingInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+    @Override
+    public String getUserNameFromToken(String token) {
+        return getClaim(token, Claims::getSubject);
+    }
+
+    @Override
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String userName = getUserNameFromToken(token);
+        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+
+    }
+
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSingInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public <T> T getClaim(String token, Function<Claims,T> claimsResolver) {
+        final Claims claims = getAllClaimsFromToken(token);
+
+        return claimsResolver.apply(claims);
+    }
+    private Date getExpirationDateFromToken(String token) {
+        return getClaim(token, Claims::getExpiration);
+    }
+    private boolean isTokenExpired(String token) {
+
+        return getExpirationDateFromToken(token).before(new Date());
     }
 }
