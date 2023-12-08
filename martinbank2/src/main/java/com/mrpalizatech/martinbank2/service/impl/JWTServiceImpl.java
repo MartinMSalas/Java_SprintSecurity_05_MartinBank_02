@@ -29,9 +29,11 @@ public class JWTServiceImpl implements JWTService {
     @Override
     public String getToken(UserDetails userDetails) {
         HashMap<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("roles", userDetails.getAuthorities());
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
+
                 .setIssuedAt(new java.util.Date(System.currentTimeMillis()))
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + 1000*60*60*24))
                 .signWith(getSingInKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
