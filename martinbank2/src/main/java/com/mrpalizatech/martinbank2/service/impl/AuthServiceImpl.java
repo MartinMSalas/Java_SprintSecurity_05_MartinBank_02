@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .country(request.getCountry())
-                .role(Role.USER)
+                .role(Role.ADMIN)
                 .build();
 
         userRepository.save(user);

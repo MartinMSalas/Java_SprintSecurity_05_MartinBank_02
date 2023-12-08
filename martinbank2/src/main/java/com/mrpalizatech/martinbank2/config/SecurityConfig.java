@@ -29,8 +29,9 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                .requestMatchers(publicEndpoints()).permitAll()
-                .anyRequest().authenticated())
+                        .requestMatchers(publicEndpoints()).permitAll()
+                        .requestMatchers("/api/card/create").authenticated())
+
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -40,16 +41,15 @@ public class SecurityConfig {
 
     private RequestMatcher publicEndpoints() {
         return new OrRequestMatcher(
-                /*
-                new AntPathRequestMatcher("/api//register"),
-                new AntPathRequestMatcher("/api/auth/authenticate")
-                */
                 new AntPathRequestMatcher("/api/greeting/hellopublic"),
                 new AntPathRequestMatcher("/auth/**"),
                 new AntPathRequestMatcher("/swagger-ui/**"),
                 new AntPathRequestMatcher("/v3/api-docs/**")
-
-
         );
     }
+
+    private RequestMatcher adminEndpoints() {
+        return new AntPathRequestMatcher("/api/card/create");
+    }
 }
+
